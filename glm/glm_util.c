@@ -64,10 +64,10 @@ __glmWarning(char *format,...)
   va_list args;
 
   va_start(args, format);
-  fprintf(stderr, "GLM: Warning: ");
-  vfprintf(stderr, format, args);
+  // fprintf(stderr, "GLM: Warning: ");
+  // vfprintf(stderr, format, args);
   va_end(args);
-  putc('\n', stderr);
+  // putc('\n', stderr);
 }
 
 /* CENTRY */

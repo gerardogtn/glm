@@ -4,11 +4,10 @@
 #include "glm.h"
 #include "glmint.h"
 
-#ifdef HAVE_DEVIL
 #include <IL/il.h>
 #include <stdlib.h>
 
-GLubyte* 
+GLubyte*
 glmReadDevIL(const char* filename, GLboolean alpha, int* width, int* height, int* type)
 {
     ILuint image;
@@ -44,4 +43,3 @@ glmReadDevIL(const char* filename, GLboolean alpha, int* width, int* height, int
     free(data);
     return NULL;
 }
-#endif	/* HAVE_DEVIL */

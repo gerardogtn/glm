@@ -74,7 +74,7 @@ static void glmImgInit(void)
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_max_texture_size);
     if (gl_max_texture_size <= 0)
         __glmFatalError( "glmImgInit() failed: glGetIntegerv(GL_MAX_TEXTURE_SIZE) returned %d. Maybe the OpenGL context is not initialized?", gl_max_texture_size);
-#if GLM_MAX_TEXTURE_SIZE > 0    
+#if GLM_MAX_TEXTURE_SIZE > 0
 #warning GLM_MAX_TEXTURE_SIZE
     if(gl_max_texture_size > GLM_MAX_TEXTURE_SIZE)
         gl_max_texture_size = GLM_MAX_TEXTURE_SIZE;
@@ -132,20 +132,20 @@ static void glmImgInit(void)
  * height     - will contain the height of the image on return.
  *
  */
-static GLubyte* 
+static GLubyte*
 glmReadPPM(const char* filename, GLboolean alpha, int* width, int* height, int *type)
 {
     FILE* fp;
     int i, w, h, d;
     unsigned char* image;
     char head[70];          /* max line <= 70 in PPM (per spec). */
-    
+
     fp = fopen(filename, "rb");
     if (!fp) {
         perror(filename);
         return NULL;
     }
-    
+
     /* grab first two chars of the file and make sure that it has the
        correct magic cookie for a raw PPM file. */
     fgets(head, 70, fp);
@@ -154,7 +154,7 @@ glmReadPPM(const char* filename, GLboolean alpha, int* width, int* height, int *
 	fclose(fp);
         return NULL;
     }
-    
+
     /* grab the three elements in the header (width, height, maxval). */
     i = 0;
     while(i < 3) {
@@ -168,12 +168,12 @@ glmReadPPM(const char* filename, GLboolean alpha, int* width, int* height, int *
         else if (i == 2)
             i += sscanf(head, "%d", &d);
     }
-    
+
     /* grab all the image data in one fell swoop. */
     image = (unsigned char*)malloc(sizeof(unsigned char)*w*h*3);
     fread(image, sizeof(unsigned char), w*h*3, fp);
     fclose(fp);
-    
+
     *type = GL_RGB;
     *width = w;
     *height = h;
@@ -207,13 +207,11 @@ glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolea
 	goto DONE;
     }
 
-#ifdef HAVE_DEVIL
     data = glmReadDevIL(filename, alpha, &width, &height, &type);
     if(data != NULL) {
 	DBG_(__glmWarning("glmLoadTexture(): got DevIL for %s",filename));
 	goto DONE;
     }
-#endif
 #ifdef HAVE_LIBJPEG
     data = glmReadJPG(filename, alpha, &width, &height, &type);
     if(data != NULL) {
@@ -259,11 +257,11 @@ glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolea
     if(alpha && type == GL_RGB) {
 	/* if we really want RGBA */
 	const unsigned int size = width * height;
-	
+
 	unsigned char *rgbaimage;
 	unsigned char *ptri, *ptro;
 	int i;
-	
+
 	rgbaimage = (unsigned char*)malloc(sizeof(unsigned char)* size * 4);
 	ptri = data;
 	ptro = rgbaimage;
@@ -325,7 +323,7 @@ glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolea
 	xSize2 = 1 << ixPow2;
 	ySize2 = 1 << iyPow2;
     }
-	    
+
     DBG_(__glmWarning("gl_max_texture_size=%d / width=%d / xSize2=%d / height=%d / ySize2 = %d", gl_max_texture_size, width, xSize2, height, ySize2));
     if((width != xSize2) || (height != ySize2)) {
 	/* TODO: use glTexSubImage2D instead */
@@ -333,7 +331,7 @@ glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolea
 	rdata = (GLubyte*)malloc(sizeof(GLubyte) * xSize2 * ySize2 * pixelsize);
 	if (!rdata)
 	    return 0;
-	    
+
 	retval = gluScaleImage(type, width, height,
 			       GL_UNSIGNED_BYTE, data,
 			       xSize2, ySize2, GL_UNSIGNED_BYTE,
@@ -346,7 +344,7 @@ glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolea
     glGenTextures(1, &tex);		/* Generate texture ID */
     glBindTexture(_glmTextureTarget, tex);
     DBG_(__glmWarning("building texture %d",tex));
-   
+
     if(mipmaps && _glmTextureTarget != GL_TEXTURE_2D) {
 	DBG_(__glmWarning("mipmaps only work with GL_TEXTURE_2D"));
 	mipmaps = 0;
@@ -361,7 +359,7 @@ glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolea
     }
     glTexParameteri(_glmTextureTarget, GL_TEXTURE_MIN_FILTER, filter_min);
     glTexParameteri(_glmTextureTarget, GL_TEXTURE_MAG_FILTER, filter_mag);
-   
+
     glTexParameteri(_glmTextureTarget, GL_TEXTURE_WRAP_S, (repeat) ? GL_REPEAT : GL_CLAMP);
     glTexParameteri(_glmTextureTarget, GL_TEXTURE_WRAP_T, (repeat) ? GL_REPEAT : GL_CLAMP);
     if(mipmaps && _glmTextureTarget == GL_TEXTURE_2D) {
@@ -370,23 +368,23 @@ glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolea
 	if(gl_sgis_generate_mipmap) {
 	    DBG_(__glmWarning("sgis mipmapping"));
 	    glTexParameteri(_glmTextureTarget, GL_GENERATE_MIPMAP_SGIS, GL_TRUE );
-	    glTexImage2D(_glmTextureTarget, 0, type, xSize2, ySize2, 0, type, 
+	    glTexImage2D(_glmTextureTarget, 0, type, xSize2, ySize2, 0, type,
 			 GL_UNSIGNED_BYTE, data);
 	}
 	else
 #endif
 	    {
 		DBG_(__glmWarning("glu mipmapping"));
-		gluBuild2DMipmaps(_glmTextureTarget, type, xSize2, ySize2, type, 
+		gluBuild2DMipmaps(_glmTextureTarget, type, xSize2, ySize2, type,
 				  GL_UNSIGNED_BYTE, data);
 	    }
     }
     else {
-	glTexImage2D(_glmTextureTarget, 0, type, xSize2, ySize2, 0, type, 
+	glTexImage2D(_glmTextureTarget, 0, type, xSize2, ySize2, 0, type,
 		     GL_UNSIGNED_BYTE, data);
     }
-   
-   
+
+
     /* Clean up and return the texture ID */
     free(data);
 
@@ -398,6 +396,6 @@ glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolea
 	*texcoordwidth = xSize2;		/* size of texture coords */
 	*texcoordheight = ySize2;
     }
-   
+
     return tex;
 }
